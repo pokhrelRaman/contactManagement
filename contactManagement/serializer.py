@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Contacts, Address,BlackList
+from .models import Contacts, Address
 
 
 class AddressSerializer(serializers.ModelSerializer):

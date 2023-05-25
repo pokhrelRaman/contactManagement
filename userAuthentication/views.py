@@ -16,8 +16,11 @@ from drf_yasg.utils import swagger_auto_schema
 from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer
 
 
-def loginPage():
-    return Response("test")
+def loginPage(request):
+    return Response("this is login page")
+
+def test(request):
+    return redirect('loginPage')
 
 
 class UserRegistration(APIView):      #user registrations and update user details
@@ -61,15 +64,14 @@ class UserUpdate(APIView):
 class ChangePassword(APIView):
     permission_classes = (IsAuthenticated)
     authentication_classes = [JWTAuthentication]
-    permission_classes = [AllowAny]
     def put(self,request):
         user = self.request.user
         serialized_data = UpdatePasswordSerializer(data=request.data)
         if serialized_data.is_valid():
             if not user.check_password(serialized_data.validated_data.get('oldPassword')):
-                return Response("message: old password is incorrect")
+                return Response({'message' : "old password is incorrect"})
             user.set_password(serialized_data.validated_data['newPassword'])
-            return Response("message: password sucessfully changed")
+            return Response({'message': "password sucessfully changed"})
         return Response("invalid Serializer")
         
 
@@ -79,12 +81,13 @@ class ResetPassword(APIView):
     def post(request):
         try:
             username = request.data['username']
-            if not User.objects.filter(username=username).first():
-                return Response("message: NOT READY YET")
-                # return Response("message: Resetting email is sent to your account")
+            if User.objects.filter(username=username).first():
+                
+                return Response({'message': 'Resetting email is sent to your account'})
+            return Response({'message': "NOT READY YET"})
         except Exception as exception :
             print(exception)
-            return Response("message : user not found")
+            return Response({'message' : "user not found"})
 
 
 class Logout(APIView):
@@ -95,7 +98,7 @@ class Logout(APIView):
         try:
             token = RefreshToken.for_user(request.user)
             token.blacklist()
-            return redirect('login')
+            return Response({'message':"user logged out"})
         except Exception as exception:
             return Response("User not found")
         
