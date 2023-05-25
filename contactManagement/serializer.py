@@ -10,14 +10,14 @@ class AddressSerializer(serializers.ModelSerializer):
 
 class ContactSerializer(serializers.HyperlinkedModelSerializer):
     addresses = AddressSerializer(many=True)
-
     class Meta:
         model = Contacts
-        fields = ['id', 'name', 'email', 'contact_number', 'addresses']
+        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid']
 
-    def create(self, validated_data):
+    def create(self, validated_data,uid):
         addresses = validated_data.pop('addresses')
         contact = Contacts.objects.create(**validated_data)
+        contact.uid = uid
         for addr in addresses:
             Address.objects.create(address=addr['address'],contact=contact)
         return contact

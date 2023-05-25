@@ -6,6 +6,7 @@ from .serializer import ContactSerializer,BlackListSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 
 # class contactView(viewsets.ModelViewSet):
 #     authentication_classes = [JWTAuthentication]
@@ -36,8 +37,11 @@ class ContactView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        # user = request.user
-        serializer = ContactSerializer(data=request.data)
+        try : 
+            uid = request.user.id
+        except Exception as exception:
+            return Response({'message':"unauthorized user cannot create contact"}) 
+        serializer = ContactSerializer(data=request.data,uid=uid)
         print(serializer)
         if serializer.is_valid():
             serializer.save()
@@ -46,19 +50,24 @@ class ContactView(APIView):
 
     def get(self, request, pk=None):
         id = pk
+        uid = request.user.id
         if id is not None:
-            contact = get_object_or_404(Contacts,id=id)
-            serialized_data = ContactSerializer(contact)
-            return Response(serialized_data.data)
-            
-        contacts = Contacts.objects.all()
+            try:
+                contact = Contacts.objects.get(uid = uid , id = id)
+                serialized_data = ContactSerializer(contact)
+                return Response(serialized_data.data)
+            except Exception as exception:
+                print(f"{exception} couldn't get contact with specified id")
+                return
+        contacts = Contacts.objects.get(uid = uid)
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
 
     def put(self, request, pk = None):
         id = pk
+        uid = request.user.id
         if id is not None:
-            contact = Contacts.objects.get(id = id)
+            contact = Contacts.objects.get(id = id, uid = uid)
             serialized_data = ContactSerializer(instance =  contact,data= request.data)
             if serialized_data.is_valid():
                 serialized_data.save()
@@ -66,21 +75,29 @@ class ContactView(APIView):
         return Response({'message': f"{pk} Couldn't Update"})
 
     def delete(self, request, pk=None):
-        contact = Contacts.objects.get(id=pk)
-        contact.delete()
-        return Response({'message': "contact has been deleted"})
+        uid = request.user.id
+        try:
+            contact = Contacts.objects.get(id=pk,uid = uid)
+            contact.delete()
+            return Response({'message': "contact has been deleted"})
+        except Exception as exception:
+            return Response({'message': "contact not found" })
     
 class blacklist(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
-    def post(self,request,pk = None):
-        if pk is not None:            
-            contact = get_object_or_404(Contacts,id)
-            serialized_data = BlackListSerializer(instance= contact,data= request.data)
-            if serialized_data.is_valid():
-                serialized_data.save()
-                return Response ("message: Contact Blacklisted")
+    def put(self,request,pk = None):
+        uid = request.user.id
+        if pk is not None:
+            try:            
+                contact = Contacts.objects.get(id=pk, uid = uid)
+                serialized_data = BlackListSerializer(instance= contact,data= request.data)
+                if serialized_data.is_valid():
+                    serialized_data.save()
+                    return Response ("message: Contact Blacklisted")
+            except Exception as exception:
+                return Response({'message':"Contact not found to blacklist"})
         return Response("mseeage: cannot blacklist unspecified contact")
 
 

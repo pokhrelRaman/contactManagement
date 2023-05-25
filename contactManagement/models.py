@@ -1,10 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Contacts(models.Model):
     name = models.CharField(max_length= 100,help_text="Full Name")
     email = models.EmailField(unique=True)
     contact_number = models.CharField(unique= True,max_length=13,help_text="format: 9779841333333")
-    blacklist = models.BooleanField(default=False)  
+    blacklist = models.BooleanField(default=False)
+    uid = models.ForeignKey(User,null=True,on_delete=models.CASCADE, )  
     def __str__(self):
         return self.email
 
