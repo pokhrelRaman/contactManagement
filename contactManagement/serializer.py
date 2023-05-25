@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Contacts, Address
+from .models import Contacts, Address,BlackList
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -31,4 +31,9 @@ class ContactSerializer(serializers.HyperlinkedModelSerializer):
             Address.objects.create(address = address_data['address'])
 
         return instance
-                    
+    
+class BlackListSerializer(serializers.ModelSerializer):
+    def update(self,instance,data):
+        instance.blacklist = data['blacklist']
+        instance.save()
+        return instance

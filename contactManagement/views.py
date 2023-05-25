@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Contacts, Address
-from .serializer import ContactSerializer
+from .serializer import ContactSerializer,BlackListSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
@@ -34,7 +34,9 @@ from django.shortcuts import get_object_or_404
 class ContactView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    
     def post(self, request):
+        # user = request.user
         serializer = ContactSerializer(data=request.data)
         print(serializer)
         if serializer.is_valid():
@@ -67,6 +69,21 @@ class ContactView(APIView):
         contact = Contacts.objects.get(id=pk)
         contact.delete()
         return Response({'message': "contact has been deleted"})
+    
+class blacklist(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self,request,pk = None):
+        if pk is not None:            
+            contact = get_object_or_404(Contacts,id)
+            serialized_data = BlackListSerializer(instance= contact,data= request.data)
+            if serialized_data.is_valid():
+                serialized_data.save()
+                return Response ("message: Contact Blacklisted")
+        return Response("mseeage: cannot blacklist unspecified contact")
+
+
 
 # {
 #     "name": "upd",
