@@ -37,12 +37,8 @@ class ContactView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        try : 
-            uid = request.user.id
-        except Exception as exception:
-            return Response({'message':"unauthorized user cannot create contact"}) 
-        serializer = ContactSerializer(data=request.data,uid=uid)
-        print(serializer)
+        user = request.user
+        serializer = ContactSerializer(data=request.data ,  context = {'user':user})
         if serializer.is_valid():
             serializer.save()
             return Response(data={'messege': 'created'}, status=201)
@@ -53,7 +49,7 @@ class ContactView(APIView):
         uid = request.user.id
         if id is not None:
             try:
-                contact = Contacts.objects.filter( id = id, blacklist = False)
+                contact = Contacts.objects.filter( id = id)  
                 serialized_data = ContactSerializer(contact)
                 return Response(serialized_data.data)
             except Exception as exception:
@@ -99,7 +95,12 @@ class blacklist(APIView):
             except Exception as exception:
                 return Response({'message':"Contact not found to blacklist"})
         return Response("mseeage: cannot blacklist unspecified contact")
-
+    
+class UnauthorizedView(APIView):
+    def get(self,request):
+        contacts = Contacts.objects.all()
+        serialized_data = ContactSerializer(contacts, many=True)
+        return Response(serialized_data.data)
 
 
 # {
