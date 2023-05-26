@@ -8,29 +8,6 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
-# class contactView(viewsets.ModelViewSet):
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     queryset = Contacts.objects.all()
-#     serializer_class = contactSerializer
-
-#     def create(self, request, *args, **kwargs):
-#         mutable_data = request.data.copy()
-#         addresses = mutable_data.pop('addresses', [])
-
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         self.perform_create(serializer)
-
-#         contact = serializer.instance
-#         for address in addresses:
-#             Address.objects.create(contact=contact, address=address)
-#         contact.save()
-
-#         headers = self.get_success_headers(serializer.data)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
 class ContactView(APIView):
     authentication_classes = [JWTAuthentication]
