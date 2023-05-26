@@ -1,2 +1,3 @@
 from django.db import models
-from django.contrib.auth.models import User
+from contactManagement.models import Contacts
+# from django.contrib.auth.models import 

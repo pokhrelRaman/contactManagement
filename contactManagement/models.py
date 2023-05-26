@@ -6,7 +6,7 @@ class Contacts(models.Model):
     email = models.EmailField(unique=True)
     contact_number = models.CharField(unique= True,max_length=13,help_text="format: 9779841333333")
     blacklist = models.BooleanField(default=False)
-    uid = models.ForeignKey(User,null=True,on_delete=models.CASCADE, )  
+    uid = models.ForeignKey(User,null=True,on_delete=models.CASCADE )  
     def __str__(self):
         return self.email
 
@@ -17,6 +17,9 @@ class Address(models.Model):
     def __str__(self):
         return self.address
     
-# class BlackList(models.Model):
+# class Blacklist(models.Model):    #kun contact ko ho , koslai blacklist gareko ho 
 #     contact = models.ForeignKey(Contacts,blank=True,null=True, on_delete=models.CASCADE, related_name="blacklists")
+#     blacklist = models.IntegerField(null=True)
 
+#     def __str__(self): 
+#         return self.blacklist

@@ -53,13 +53,13 @@ class ContactView(APIView):
         uid = request.user.id
         if id is not None:
             try:
-                contact = Contacts.objects.get(uid = uid , id = id)
+                contact = Contacts.objects.filter( id = id, blacklist = False)
                 serialized_data = ContactSerializer(contact)
                 return Response(serialized_data.data)
             except Exception as exception:
                 print(f"{exception} couldn't get contact with specified id")
                 return
-        contacts = Contacts.objects.get(uid = uid)
+        contacts = Contacts.objects.filter(blacklist = False)
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
 
@@ -77,7 +77,7 @@ class ContactView(APIView):
     def delete(self, request, pk=None):
         uid = request.user.id
         try:
-            contact = Contacts.objects.get(id=pk,uid = uid)
+            contact = Contacts.objects.get(uid = uid , id=pk)
             contact.delete()
             return Response({'message': "contact has been deleted"})
         except Exception as exception:
@@ -91,7 +91,7 @@ class blacklist(APIView):
         uid = request.user.id
         if pk is not None:
             try:            
-                contact = Contacts.objects.get(id=pk, uid = uid)
+                contact = Contacts.objects.get(uid = uid , id=pk)
                 serialized_data = BlackListSerializer(instance= contact,data= request.data)
                 if serialized_data.is_valid():
                     serialized_data.save()
