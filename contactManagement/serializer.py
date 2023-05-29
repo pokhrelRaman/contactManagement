@@ -24,19 +24,19 @@ class ContactSerializer(serializers.ModelSerializer):
             Address.objects.create(address=addr['address'],contact=contact)
         return contact
     
-    # def update(self,instance,validated_data):
-    #     instance.name = validated_data.get('name')
-    #     instance.contact_number = validated_data.get('contact_number')
-    #     instance.email = validated_data.get('email')
-    #     addresses_data = validated_data.pop('addresses')
-    #     for address_data in addresses_data:
-    #         try:
-    #             address = Address.objects.get(contact = instance.id,id = address_data.id)
-    #             address.address = address_data['address']
-    #         except :
-    #              Address.objects.create(address=address_data['address'],contact=instance)
-    #         address.save()
-    #     return instance
+    def update(self,instance,validated_data):
+        instance.name = validated_data.get('name')
+        instance.contact_number = validated_data.get('contact_number')
+        instance.email = validated_data.get('email')
+        addresses_data = validated_data.pop('addresses')
+        for address_data in addresses_data:
+            try:
+                address = Address.objects.get(contact = instance.id,id = address_data.id)
+                address.address = address_data['address']
+            except :
+                 Address.objects.create(address=address_data['address'],contact=instance)      # a method to delete address if no data is send or sth like that 
+            address.save()
+        return instance
     
 class BlackListSerializer(serializers.ModelSerializer):
     def update(self,instance,data):

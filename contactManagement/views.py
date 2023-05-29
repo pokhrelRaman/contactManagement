@@ -7,7 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-
+from rest_framework import status
 
 class ContactView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -19,7 +19,7 @@ class ContactView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(data={'messege': 'created'}, status=201)
-        return Response(serializer.errors)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, pk=None):
         id = pk
@@ -30,8 +30,9 @@ class ContactView(APIView):
                 serialized_data = ContactSerializer(contact)
                 return Response(serialized_data.data)
             except Exception as exception:
-                print(f"{exception} couldn't get contact with specified id")
-                return
+                print(f"{exception} couldn't get contact with specified id")                
+                return Response({'message':"no contact with given id exists"},status = status.HTTP_404_NOT_FOUND) 
+                       
         contacts = Contacts.objects.filter(blacklist = False)
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
@@ -45,7 +46,7 @@ class ContactView(APIView):
             if serialized_data.is_valid():
                 serialized_data.save()
                 return Response({'message': "contacts Updated"})
-        return Response({'message': f"{pk} Couldn't Update"})
+        return Response({'message': f"{pk} Couldn't Update"},status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk=None):
         uid = request.user.id
@@ -54,7 +55,7 @@ class ContactView(APIView):
             contact.delete()
             return Response({'message': "contact has been deleted"})
         except Exception as exception:
-            return Response({'message': "contact not found" })
+            return Response({'message': "contact not found" },status=status.HTTP_404_NOT_FOUND)
     
 class blacklist(APIView):
     authentication_classes = [JWTAuthentication]
@@ -71,7 +72,7 @@ class blacklist(APIView):
                     return Response ("message: Contact Blacklisted")
             except Exception as exception:
                 return Response({'message':"Contact not found to blacklist"})
-        return Response("mseeage: cannot blacklist unspecified contact")
+        return Response("mseeage: cannot blacklist unspecified contact",)
     
 class UnauthorizedView(APIView):
     def get(self,request):
@@ -93,4 +94,6 @@ class UnauthorizedView(APIView):
 #         }
 #     ]
 # }
+
+
 

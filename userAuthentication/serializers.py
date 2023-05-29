@@ -2,6 +2,10 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
+from django.utils.encoding import smart_str,force_bytes,DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -38,14 +42,48 @@ class UpdatePasswordSerializer(serializers.Serializer):
     newPassword = serializers.CharField(required = True, write_only=True,validators = [validate_password] )                      # encrypted data how decrypt
 
 
+class ResetPasswordMailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    class Meta: 
+        fields=['email']
+
+    def validate(self,data):
+        mail = data.get('email')
+        try:
+            print(mail)
+            user = User.objects.filter(email = f"{mail}").first()
+            uid = urlsafe_base64_encode(force_bytes(user.id))
+            token = PasswordResetTokenGenerator().make_token(user=user)
+            link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
+            print(link)
+            # send Email 
+            return data
+        except Exception as exception:
+            raise ValueError(f"{exception}")
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(max_length=255,style={'input_type':'password'},write_only=True)
+    class Meta:
+        fields = ['password']
+
+    def validate(self,data):
+        password = data['password']
+        uid = self.context.get('uid')
+        token = self.context.get('token')
+
+        id = smart_str(urlsafe_base64_decode(uid))
+        user = User.objects.get(id = id)
+        if not PasswordResetTokenGenerator().check_token(user=user,token=token):
+            raise ValueError('Token is not valid or expired')
+        user.set_password(password)
+        user.save()
+        return data
 
 
 
 
 
-
- 
-        
 # {
 #     "username": "user",
 #     "email": "user@user.com",

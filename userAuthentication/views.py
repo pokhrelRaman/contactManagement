@@ -1,19 +1,21 @@
+from collections import namedtuple
+
 from django.shortcuts import render,redirect
+from django.utils.decorators import method_decorator
+from django.contrib.auth.models import User
+
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.response import Response
 from rest_framework.views import APIView 
-
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.contrib.auth.models import User
-
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from drf_yasg.utils import swagger_auto_schema
 
-from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer
+from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer,ResetPasswordMailSerializer,ResetPasswordSerializer
 
 
 def loginPage(request):
@@ -35,6 +37,8 @@ class UserRegistration(APIView):      #user registrations and update user detail
         else :
             errors = serialized_data.errors
             return Response(f'{errors}invalid serializers')
+        
+
     
 class UserUpdate(APIView):
     permission_classes = (IsAuthenticated)
@@ -59,11 +63,10 @@ class UserUpdate(APIView):
 
 
 
-        
-    
 class ChangePassword(APIView):
-    permission_classes = (IsAuthenticated)
     authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated)
+
     def put(self,request):
         user = self.request.user
         serialized_data = UpdatePasswordSerializer(data=request.data)
@@ -77,22 +80,9 @@ class ChangePassword(APIView):
 
 # password reset , token refresh , token verification, logout
 
-class ResetPassword(APIView):
-    def post(request):
-        try:
-            username = request.data['username']
-            if User.objects.filter(username=username).first():
-                
-                return Response({'message': 'Resetting email is sent to your account'})
-            return Response({'message': "NOT READY YET"})
-        except Exception as exception :
-            print(exception)
-            return Response({'message' : "user not found"})
-
-
 class Logout(APIView):
-    permission_classes = (IsAuthenticated)
     authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated)
     
     def post(self,request):
         try:
@@ -101,4 +91,31 @@ class Logout(APIView):
             return Response({'message':"user logged out"})
         except Exception as exception:
             return Response("User not found")
+
+class ResetPasswordMailView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self,request):
+        serializer = ResetPasswordMailSerializer(data = request.data)
+        if serializer.is_valid():
+            return Response({'message':"Email has been send to reset the password"})
+        return Response(serializer.errors,status= status.HTTP_400_BAD_REQUEST)
+    
+class ResetPassword(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self,request,uid,token):
+        serializer = ResetPasswordSerializer(data = request.data, context={'uid':uid,'token':token})
+        if serializer.is_valid():
+            return Response({'message':"Resetting password was successful"})
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
+# class viewall(APIView):
+#     def get(self,request):
+#         # users = User.objects.all()
+#         # serialized_data = UserSerializer(users, many=True)
+#         # return Response(serialized_data.data)
+#         email = "raman@user.com"
+#         users = User.objects.filter(email = email)
+#         serialized_data = UserSerializer(users, many=True)
+#         return Response(serialized_data.data)

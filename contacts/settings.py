@@ -140,7 +140,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-
-   
+    "BLACKLIST_AFTER_ROTATION": True,  
 }
+
+PASSWORD_RESET_TIMEOUT=1000           #1000 seconds
