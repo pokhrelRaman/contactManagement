@@ -57,7 +57,7 @@ class ContactView(APIView):
         except Exception as exception:
             return Response({'message': "contact not found" },status=status.HTTP_404_NOT_FOUND)
     
-class blacklist(APIView):
+class Blacklist(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
@@ -76,7 +76,7 @@ class blacklist(APIView):
     
 class UnauthorizedView(APIView):
     def get(self,request):
-        contacts = Contacts.objects.filter(blacklistCount__lt =  1)
+        contacts = Contacts.objects.filter(blacklistCount__lt =  5)
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
 

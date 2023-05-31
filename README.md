@@ -1,7 +1,7 @@
 Tech-stacks involved
 Language: Python
 Framework: Django,Django Rest Framework
-Note: Before using any 3rd party library except wagtail, discuss it with the team lead or project manager and use it only after his/her approval.
+
 
 How to get started with this repo???
 Requirements
@@ -57,6 +57,35 @@ pip install -r requirements.txt
 Step 6: Start the development sever 🚀
 
 make run or `python3 manage.py runserver
+
+ Api for User CRUD:
+ 
+ 
+
+
+
+                  localhost:8000/auth/v1.0/register
+                  localhost:8000/auth/v1.0/forgotPassword
+                  localhost:8000/auth/v1.0/login
+                  localhost:8000/auth/v1.0/update
+                  localhost:8000/auth/v1.0/changepassword
+                  localhost:8000/auth/v1.0/logout
+                  localhost:8000/auth/v1.0/refreshToken
+
+  
+  Api for Contacts CRUD:
+ 
+ 
+ 
+
+
+ 
+                  localhost:8000/auth/v1.0/contacts                            create/fetch all contacts for specific user
+                  localhost:8000/auth/v1.0/contacts/id                         fetch contact with specific id
+                  localhost:8000/auth/v1.0/contacts/id/                        update/delete specific id
+                  localhost:8000/auth/v1.0/contacts/viewall                    view all contacts of all user 
+
+ 
 How to contribute to the repo??
 Create a brand new branch with the name relevant to the feature/task you are going to work on
 Push your changes to the remote repo

@@ -18,9 +18,4 @@ class Address(models.Model):
     def __str__(self):
         return self.address
     
-# class Blacklist(models.Model):    #kun contact ko ho , koslai blacklist gareko ho 
-#     contact = models.ForeignKey(Contacts,blank=True,null=True, on_delete=models.CASCADE, related_name="blacklists")
-#     blacklist = models.IntegerField(null=True)
 
-#     def __str__(self): 
-#         return self.blacklist
