@@ -6,6 +6,7 @@ class Contacts(models.Model):
     email = models.EmailField(unique=True)
     contact_number = models.CharField(unique= True,max_length=13,help_text="format: 9779841333333")
     blacklist = models.BooleanField(default=False)
+    blacklistCount = models.IntegerField(default=0)
     uid = models.ForeignKey(User,null=True,on_delete=models.CASCADE )  
     def __str__(self):
         return self.email

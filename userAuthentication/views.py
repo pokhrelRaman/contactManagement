@@ -110,12 +110,12 @@ class ResetPassword(APIView):
             return Response({'message':"Resetting password was successful"})
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
-# class viewall(APIView):
-#     def get(self,request):
-#         # users = User.objects.all()
-#         # serialized_data = UserSerializer(users, many=True)
-#         # return Response(serialized_data.data)
-#         email = "raman@user.com"
-#         users = User.objects.filter(email = email)
-#         serialized_data = UserSerializer(users, many=True)
-#         return Response(serialized_data.data)
+class viewall(APIView):
+    def get(self,request):
+        # users = User.objects.all()
+        # serialized_data = UserSerializer(users, many=True)
+        # return Response(serialized_data.data)
+        email = "raman@user.com"
+        users = User.objects.filter(email = email)
+        serialized_data = UserSerializer(users, many=True)
+        return Response(serialized_data.data)

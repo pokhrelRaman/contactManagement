@@ -50,7 +50,7 @@ class ResetPasswordMailSerializer(serializers.Serializer):
     def validate(self,data):
         mail = data.get('email')
         try:
-            print(mail)
+            # print(mail)
             user = User.objects.filter(email = f"{mail}").first()
             uid = urlsafe_base64_encode(force_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user=user)

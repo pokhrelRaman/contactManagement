@@ -26,14 +26,14 @@ class ContactView(APIView):
         uid = request.user.id
         if id is not None:
             try:
-                contact = Contacts.objects.filter( id = id)  
+                contact = Contacts.objects.get(id = id, uid = uid)  
                 serialized_data = ContactSerializer(contact)
                 return Response(serialized_data.data)
             except Exception as exception:
                 print(f"{exception} couldn't get contact with specified id")                
                 return Response({'message':"no contact with given id exists"},status = status.HTTP_404_NOT_FOUND) 
                        
-        contacts = Contacts.objects.filter(blacklist = False)
+        contacts = Contacts.objects.filter(blacklist = False, uid = uid)
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
 
@@ -65,7 +65,7 @@ class blacklist(APIView):
         uid = request.user.id
         if pk is not None:
             try:            
-                contact = Contacts.objects.get(uid = uid , id=pk)
+                contact = Contacts.objects.get( id=pk)
                 serialized_data = BlackListSerializer(instance= contact,data= request.data)
                 if serialized_data.is_valid():
                     serialized_data.save()
@@ -76,7 +76,7 @@ class blacklist(APIView):
     
 class UnauthorizedView(APIView):
     def get(self,request):
-        contacts = Contacts.objects.all()
+        contacts = Contacts.objects.filter(blacklistCount__lt =  1)
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
 
