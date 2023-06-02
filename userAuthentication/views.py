@@ -107,6 +107,7 @@ class ResetPasswordMailView(APIView):
                 user = User.objects.get(email = request.data['email'])
             except User.DoesNotExist:
                 return Response({'message':"No user with this email is registered"})
+            uid = user.id
             uid = urlsafe_base64_encode(force_bytes(uid))
             token = PasswordResetTokenGenerator().make_token(user= user)
             link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
@@ -117,15 +118,16 @@ class ResetPasswordMailView(APIView):
 class ResetPassword(APIView):
     permission_classes = [AllowAny]
     
-    def post(self,request):
+    def post(self,request,uid,token):
         serializer = ResetPasswordSerializer(data = request.data)
         if serializer.is_valid():
-            uid = request.data.get('uid')
-            token = request.data.get('token')
+            # uid = request.data.get('uid')
+            # token = request.data.get('token')
             uid = urlsafe_base64_decode(uid).decode()
             user = User.objects.get(id = uid)
-            
-            return Response({'message':"Resetting password was successful"})
+            if not PasswordResetTokenGenerator().check_token(user=user,token=token):
+                user.set_password(request.data['password'])
+                return Response({'message':"Resetting password was successful"})
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
 class EmailVerificationView(APIView):
@@ -167,10 +169,10 @@ class EmailVerificationView(APIView):
 
 class viewall(APIView):
     def get(self,request):
-        # users = User.objects.all()
-        # serialized_data = UserSerializer(users, many=True)
-        # return Response(serialized_data.data)
-        email = "raman@user.com"
-        users = User.objects.filter(email = email)
+        users = User.objects.all()
         serialized_data = UserSerializer(users, many=True)
         return Response(serialized_data.data)
+        # email = "raman@user.com"
+        # users = User.objects.filter(email = email)
+        # serialized_data = UserSerializer(users, many=True)
+        # return Response(serialized_data.data)

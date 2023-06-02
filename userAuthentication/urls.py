@@ -17,7 +17,6 @@ urlpatterns = [
     path('login', TokenObtainPairView.as_view(), name='loginPage'),
     path('refreshToken', TokenRefreshView.as_view(), name='token_refresh'),
     path('emailVerification',EmailVerificationView.as_view()),
-    # path('test',test),
     path('contacts/', include('contactManagement.urls')),
-    # path('viewalluser', viewall.as_view()),
+    path('viewalluser', viewall.as_view()),
 ]
