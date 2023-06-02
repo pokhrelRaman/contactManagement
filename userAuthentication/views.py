@@ -125,6 +125,7 @@ class ResetPassword(APIView):
             # token = request.data.get('token')
             uid = urlsafe_base64_decode(uid).decode()
             user = User.objects.get(id = uid)
+            print(uid)
             if not PasswordResetTokenGenerator().check_token(user=user,token=token):
                 user.set_password(request.data['password'])
                 return Response({'message':"Resetting password was successful"})
@@ -141,7 +142,7 @@ class EmailVerificationView(APIView):
                 user = User.objects.get(id = uid)
             except User.DoesNotExist():
                 return Response({'message':"user not found"})
-            if user and default_token_generator.check(user,token):
+            if user and default_token_generator.check_token(user,token):
                 user.is_active = True
             else :
                 return Response({'message':"Token is not valid or expired"})
