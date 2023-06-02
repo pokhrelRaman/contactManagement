@@ -3,7 +3,7 @@ from .models import Contacts, Address
 
 
 class AddressSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(required = False)
     class Meta:
         model = Address
         fields = ['id','address','contact']
@@ -27,7 +27,6 @@ class ContactSerializer(serializers.ModelSerializer):
         return contact
     
     def update(self,instance,validated_data):
-        print(validated_data)
         instance.name = validated_data.get('name')
         instance.contact_number = validated_data.get('contact_number')
         instance.email = validated_data.get('email')
@@ -43,14 +42,17 @@ class ContactSerializer(serializers.ModelSerializer):
         return instance
 
 class BlackListSerializer(serializers.ModelSerializer):
-        class meta:
+        class Meta:
             model = Contacts
-            field = "__all__"
-        def update(self,instance,data):
+            fields = ['id','name','blacklist','blacklistCount']
+
+        def update(self, instance, data):
             blacklist = data['blacklist']
+            print("blocklist is:",blacklist)
             if blacklist :
                 instance.blacklistCount = instance.blacklistCount + 1
-            elif instance.blacklistCount is True and blacklist is False:
+                instance.blacklist = True
+            elif instance.blacklistCount < 5 and blacklist is False:
                 instance.blacklistCount = instance.blacklistCount - 1
             instance.blacklist = data['blacklist']
             instance.save()

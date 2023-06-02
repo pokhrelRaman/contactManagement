@@ -39,7 +39,7 @@ class UserRegistration(APIView):      #user registrations and update user detail
             user = serialized_data.save()
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
+            link = f"http://localhost:8000/auth/v1.0/email/{uid}/{token}"
             print(link)
             return Response({"uid":uid ,"token":token,"link":link})
         return Response(serialized_data.errors)
@@ -117,9 +117,14 @@ class ResetPasswordMailView(APIView):
 class ResetPassword(APIView):
     permission_classes = [AllowAny]
     
-    def post(self,request,uid,token):
-        serializer = ResetPasswordSerializer(data = request.data, context={'uid':uid,'token':token})
+    def post(self,request):
+        serializer = ResetPasswordSerializer(data = request.data)
         if serializer.is_valid():
+            uid = request.data.get('uid')
+            token = request.data.get('token')
+            uid = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(id = uid)
+            
             return Response({'message':"Resetting password was successful"})
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         

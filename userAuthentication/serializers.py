@@ -68,18 +68,18 @@ class ResetPasswordSerializer(serializers.Serializer):
     class Meta:
         fields = ['password']
 
-    def validate(self,data):
-        password = data['password']
-        uid = self.context.get('uid')
-        token = self.context.get('token')
+    # def validate(self,data):
+    #     password = data['password']
+    #     uid = self.context.get('uid')
+    #     token = self.context.get('token')
 
-        id = smart_str(urlsafe_base64_decode(uid))
-        user = User.objects.get(id = id)
-        if not PasswordResetTokenGenerator().check_token(user=user,token=token):
-            raise ValueError('Token is not valid or expired')
-        user.set_password(password)
-        user.save()
-        return data
+    #     id = smart_str(urlsafe_base64_decode(uid))
+    #     user = User.objects.get(id = id)
+    #     if not PasswordResetTokenGenerator().check_token(user=user,token=token):
+    #         raise ValueError('Token is not valid or expired')
+    #     user.set_password(password)
+    #     user.save()
+    #     return data
 
 class EmailVerificationSerializer(serializers.Serializer):
     token = serializers.CharField()
