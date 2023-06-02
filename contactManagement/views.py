@@ -70,7 +70,7 @@ class Blacklist(APIView):
                 serialized_data = BlackListSerializer(instance = contact, data= request.data)
                 print(serialized_data)
                 if serialized_data.is_valid():
-                    # contact.blacklist = request.data['blacklist']
+                    contact.blacklist = request.data['blacklist']
                     contact.save()
                     return Response ("message: Contact Blacklisted")
                 else:

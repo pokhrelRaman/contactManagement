@@ -43,23 +43,8 @@ class UpdatePasswordSerializer(serializers.Serializer):
 
 
 class ResetPasswordMailSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    class Meta: 
-        fields=['email']
+    email = serializers.EmailField()
 
-    # def validate(self,data):
-    #     mail = data.get('email')
-    #     try:
-    #         # print(mail)
-    #         user = User.objects.get(email = f"{mail}")
-    #         uid = urlsafe_base64_encode(force_bytes(user.id))
-    #         token = PasswordResetTokenGenerator().make_token(user=user)
-            # link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
-            # print(link)
-    #         # send Email 
-    #         return data
-    #     except User.DoesNotExist():
-    #         raise ValueError(f"Email doesnt exist")
 
 
 

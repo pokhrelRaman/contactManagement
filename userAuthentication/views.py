@@ -104,8 +104,8 @@ class ResetPasswordMailView(APIView):
         serializer = ResetPasswordMailSerializer(data = request.data)
         if serializer.is_valid():
             try:
-                user = User.objects.get(email = serializer.email)
-            except User.DoesNotExist():
+                user = User.objects.get(email = request.data['email'])
+            except User.DoesNotExist:
                 return Response({'message':"No user with this email is registered"})
             uid = urlsafe_base64_encode(force_bytes(uid))
             token = PasswordResetTokenGenerator().make_token(user= user)
