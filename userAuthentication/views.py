@@ -118,14 +118,14 @@ class ResetPasswordMailView(APIView):
 class ResetPassword(APIView):
     permission_classes = [AllowAny]
     
-    def post(self,request,uid,token):
+    def post(self,request):
         serializer = ResetPasswordSerializer(data = request.data)
         if serializer.is_valid():
-            # uid = request.data.get('uid')
-            # token = request.data.get('token')
+            uid = request.data.get('uid')
+            token = request.data.get('token')
             uid = urlsafe_base64_decode(uid).decode()
             user = User.objects.get(id = uid)
-            print(uid)
+            print(user)
             if not PasswordResetTokenGenerator().check_token(user=user,token=token):
                 user.set_password(request.data['password'])
                 return Response({'message':"Resetting password was successful"})
@@ -144,6 +144,7 @@ class EmailVerificationView(APIView):
                 return Response({'message':"user not found"})
             if user and default_token_generator.check_token(user,token):
                 user.is_active = True
+                return Response({'message' : 'verified'})
             else :
                 return Response({'message':"Token is not valid or expired"})
 

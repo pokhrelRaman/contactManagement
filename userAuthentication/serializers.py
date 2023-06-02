@@ -49,7 +49,7 @@ class ResetPasswordMailSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(max_length=255,style={'input_type':'password'},write_only=True)
+    password = serializers.CharField()
     class Meta:
         fields = ['password']
 
