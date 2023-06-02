@@ -12,7 +12,7 @@ urlpatterns = [
     path('update',UserUpdate.as_view()),
     path('changePassword',ChangePassword.as_view()),
     path('logout',Logout.as_view()),
-    path('reset/<uid>/<token>',ResetPassword.as_view()),
+    path('reset',ResetPassword.as_view()),
     path('forgotPassword',ResetPasswordMailView.as_view()),
     path('login', TokenObtainPairView.as_view(), name='loginPage'),
     path('refreshToken', TokenRefreshView.as_view(), name='token_refresh'),
