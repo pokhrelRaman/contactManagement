@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
         last_name=data['last_name']
         )
         user.set_password(data['password'])
-        user.is_active = True
+        user.is_active = False
         user.save()
         return user
 
@@ -47,19 +47,20 @@ class ResetPasswordMailSerializer(serializers.Serializer):
     class Meta: 
         fields=['email']
 
-    def validate(self,data):
-        mail = data.get('email')
-        try:
-            # print(mail)
-            user = User.objects.filter(email = f"{mail}").first()
-            uid = urlsafe_base64_encode(force_bytes(user.id))
-            token = PasswordResetTokenGenerator().make_token(user=user)
-            link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
-            print(link)
-            # send Email 
-            return data
-        except Exception as exception:
-            raise ValueError(f"{exception}")
+    # def validate(self,data):
+    #     mail = data.get('email')
+    #     try:
+    #         # print(mail)
+    #         user = User.objects.get(email = f"{mail}")
+    #         uid = urlsafe_base64_encode(force_bytes(user.id))
+    #         token = PasswordResetTokenGenerator().make_token(user=user)
+            # link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
+            # print(link)
+    #         # send Email 
+    #         return data
+    #     except User.DoesNotExist():
+    #         raise ValueError(f"Email doesnt exist")
+
 
 
 class ResetPasswordSerializer(serializers.Serializer):
@@ -80,6 +81,10 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.save()
         return data
 
+class EmailVerificationSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    uid = serializers.CharField()
+            
 
 
 

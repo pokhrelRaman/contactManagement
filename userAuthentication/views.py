@@ -13,9 +13,14 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from django.utils.encoding import smart_str,force_bytes,DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
+
+from django.contrib.auth.tokens import default_token_generator,PasswordResetTokenGenerator
+
 from drf_yasg.utils import swagger_auto_schema
 
-from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer,ResetPasswordMailSerializer,ResetPasswordSerializer
+from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer,ResetPasswordMailSerializer,ResetPasswordSerializer,EmailVerificationSerializer
 
 
 def loginPage(request):
@@ -31,15 +36,15 @@ class UserRegistration(APIView):      #user registrations and update user detail
     def post(self,request):
         serialized_data = UserSerializer(data = request.data)        
         if serialized_data.is_valid():
-            serialized_data.save()
-            return Response('User Has been created')
-            # redirect 'loginPage.html'
-        else :
-            errors = serialized_data.errors
-            return Response(f'{errors}invalid serializers')
-        
+            user = serialized_data.save()
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
+            print(link)
+            return Response({"uid":uid ,"token":token,"link":link})
+        return Response(serialized_data.errors)
 
-    
+        
 class UserUpdate(APIView):
     permission_classes = (IsAuthenticated)
     authentication_classes = [JWTAuthentication]
@@ -98,6 +103,14 @@ class ResetPasswordMailView(APIView):
     def post(self,request):
         serializer = ResetPasswordMailSerializer(data = request.data)
         if serializer.is_valid():
+            try:
+                user = User.objects.get(email = serializer.email)
+            except User.DoesNotExist():
+                return Response({'message':"No user with this email is registered"})
+            uid = urlsafe_base64_encode(force_bytes(uid))
+            token = PasswordResetTokenGenerator().make_token(user= user)
+            link = f"http://localhost:8000/auth/v1.0/reset/{uid}/{token}"
+            print(link)
             return Response({'message':"Email has been send to reset the password"})
         return Response(serializer.errors,status= status.HTTP_400_BAD_REQUEST)
     
@@ -110,6 +123,43 @@ class ResetPassword(APIView):
             return Response({'message':"Resetting password was successful"})
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
+class EmailVerificationView(APIView):
+    def post(self,request):
+        serializer = EmailVerificationSerializer(data = request.data)
+        if serializer.is_valid():
+            uid = request.data.get('uid')
+            token = request.data.get('token')
+            uid = urlsafe_base64_decode(uid).decode()
+            try :
+                user = User.objects.get(id = uid)
+            except User.DoesNotExist():
+                return Response({'message':"user not found"})
+            if user and default_token_generator.check(user,token):
+                user.is_active = True
+            else :
+                return Response({'message':"Token is not valid or expired"})
+
+        
+        
+        # if serializer.is_valid():
+        #     return Response({'message': "email verified"})
+        
+        #     uid = data.get('uid')
+        #     token = data.get('token')
+        #     try:
+        #         uid = urlsafe_base64_decode(uid).decode()
+        #         user = User.objects.get(id = uid)
+        #     except User.DoesNotExist():
+        #         raise ValueError("User not found")
+        
+        #     if user and default_token_generator.check(user,token):
+        #         user.is_active = True
+        #     else :
+        #      raise ValueError('Token is not valid or expired') 
+            
+            
+
+
 class viewall(APIView):
     def get(self,request):
         # users = User.objects.all()
