@@ -68,16 +68,17 @@ class Blacklist(APIView):
             try:            
                 contact = Contacts.objects.get(id=pk)
                 serialized_data = BlackListSerializer(instance = contact, data= request.data)
-                print(request.data)
+                print(serialized_data)
                 if serialized_data.is_valid():
-                    serialized_data.save()
+                    # contact.blacklist = request.data['blacklist']
+                    contact.save()
                     return Response ("message: Contact Blacklisted")
                 else:
                     return Response(serialized_data.error_messages)
             except Exception as exception:
                 return Response({'message':"Contact not found to blacklist"})
         else:
-            return Response("message: cannot blacklist unspecified contact",)
+            return Response("message: cannot blacklist unspecified contact")
     
 class UnauthorizedView(APIView):
     def get(self,request):

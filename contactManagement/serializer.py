@@ -41,19 +41,18 @@ class ContactSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class BlackListSerializer(serializers.ModelSerializer):
+class BlackListSerializer(serializers.Serializer):
         class Meta:
-            model = Contacts
-            fields = ['id','name','blacklist','blacklistCount']
+            fields = ['blacklist']
 
         def update(self, instance, data):
             blacklist = data['blacklist']
-            print("blocklist is:",blacklist)
             if blacklist :
                 instance.blacklistCount = instance.blacklistCount + 1
                 instance.blacklist = True
             elif instance.blacklistCount < 5 and blacklist is False:
                 instance.blacklistCount = instance.blacklistCount - 1
             instance.blacklist = data['blacklist']
+            print(instance.blacklist)
             instance.save()
             return instance
