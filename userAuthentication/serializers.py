@@ -7,21 +7,26 @@ from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('username','email','first_name','last_name','is_active','password')
     
+
     def create(self,data):
-        user = User.objects.create(
-        username=data['username'],
-        email=data['email'],                     #email verification baki
-        first_name=data['first_name'],
-        last_name=data['last_name']
-        )
-        user.set_password(data['password'])
-        user.is_active = False
-        user.save()
-        return user
+        if User.objects.filter(email = data['email']).exists():
+            raise serializers.ValidationError('User with given email already exists')
+        else:
+            user = User.objects.create(
+            username=data['username'],
+            email=data['email'],                     
+            first_name=data['first_name'],
+            last_name=data['last_name']
+            )
+            user.set_password(data['password'])
+            user.is_active = False
+            user.save()
+            return user
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,7 +37,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         instance.username = data['username']
         instance.first_name = data['first_name']
         instance.last_name = data['last_name']
-        instance.email = data['email']    # verify garnu parxa email code mail ma pathayera check garne jasto
+        instance.email = data['email']
         instance.save()
 
         return instance
