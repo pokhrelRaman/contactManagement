@@ -44,7 +44,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
 class UpdatePasswordSerializer(serializers.Serializer):
     oldPassword = serializers.CharField(required = True, write_only=True)
-    newPassword = serializers.CharField(required = True, write_only=True,validators = [validate_password] )                      # encrypted data how decrypt
+    newPassword = serializers.CharField(required = True, write_only=True ) #validators = [validate_password]                    
 
 
 class ResetPasswordMailSerializer(serializers.Serializer):

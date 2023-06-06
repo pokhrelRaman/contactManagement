@@ -46,8 +46,8 @@ class UserRegistration(APIView):      #user registrations and update user detail
 
         
 class UserUpdate(APIView):
-    permission_classes = (IsAuthenticated)
     authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     @swagger_auto_schema(
         request_body=UpdateUserSerializer,
         responses={204: "No Content"}
@@ -58,6 +58,7 @@ class UserUpdate(APIView):
             # user = User.objects.get(id= id)                     mildena user lai afno pk k tha
             user = request.user                                    # jun user le request call garyo tei user instance lai req.user le return garera update garne
             serialized_data = UpdateUserSerializer(instance=user,data=request.data)
+            print(serialized_data)
             if serialized_data.is_valid() :
                 serialized_data.save()
                 return Response('User details has been updated')
@@ -70,15 +71,20 @@ class UserUpdate(APIView):
 
 class ChangePassword(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = (IsAuthenticated)
+    permission_classes =[IsAuthenticated]
 
-    def put(self,request):
+    def post(self,request):
         user = self.request.user
         serialized_data = UpdatePasswordSerializer(data=request.data)
+        print(request.data)
+        print('here')
+        print(serialized_data)
+        print('here was ser')
         if serialized_data.is_valid():
-            if not user.check_password(serialized_data.validated_data.get('oldPassword')):
+            if not user.check_password(request.data.get('oldPassword')):
                 return Response({'message' : "old password is incorrect"})
-            user.set_password(serialized_data.validated_data['newPassword'])
+            user.set_password(request.data.get('newPassword'))
+            user.save()
             return Response({'message': "password sucessfully changed"})
         return Response("invalid Serializer")
         
@@ -87,7 +93,7 @@ class ChangePassword(APIView):
 
 class Logout(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = (IsAuthenticated)
+    permission_classes = [IsAuthenticated]
     
     def post(self,request):
         try:
@@ -174,6 +180,8 @@ class viewall(APIView):
         users = User.objects.all()
         serialized_data = UserSerializer(users, many=True)
         return Response(serialized_data.data)
+    
+
         # email = "raman@user.com"
         # users = User.objects.filter(email = email)
         # serialized_data = UserSerializer(users, many=True)
