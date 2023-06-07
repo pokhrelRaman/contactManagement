@@ -8,6 +8,8 @@ from .views import UserRegistration,UserUpdate,ChangePassword,Logout,ResetPasswo
 
 
 urlpatterns = [
+    path('test',test,name= "test"),
+    path('lp',loginPage,name="ln"),
     path('register',UserRegistration.as_view(),name= "registerUser"),
     path('update',UserUpdate.as_view()),
     path('changePassword',ChangePassword.as_view()),

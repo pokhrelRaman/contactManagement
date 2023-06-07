@@ -35,6 +35,8 @@ class ContactSerializer(serializers.ModelSerializer):
             try:
                 address = Address.objects.get(contact = instance.id,id = address_data.get('id'))
                 address.address = address_data['address']
+                if address_data['address'] == "":
+                    address.delete()
             except :
                  Address.objects.create(address=address_data['address'],contact=instance)      # a method to delete address if no data is send or sth like that 
             address.save()
@@ -50,9 +52,10 @@ class BlackListSerializer(serializers.Serializer):
             if blacklist :
                 instance.blacklistCount = instance.blacklistCount + 1
                 instance.blacklist = True
+                print("blacklisted")
             elif instance.blacklistCount < 5 and blacklist is False:
                 instance.blacklistCount = instance.blacklistCount - 1
+                print("whitelisted")
             instance.blacklist = data['blacklist']
-            print(instance.blacklist)
             instance.save()
             return instance

@@ -1,33 +1,28 @@
-from collections import namedtuple
-
-from django.shortcuts import render,redirect
-from django.utils.decorators import method_decorator
+from django.shortcuts import redirect
+from django.contrib.auth import logout
 from django.contrib.auth.models import User
-
-from django.views.decorators.csrf import csrf_exempt
-
-from rest_framework.response import Response
-from rest_framework.views import APIView 
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated,AllowAny
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
-
-from django.utils.encoding import smart_str,force_bytes,DjangoUnicodeDecodeError
-from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
-
 from django.contrib.auth.tokens import default_token_generator,PasswordResetTokenGenerator
 
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.views import APIView 
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from django.utils.encoding import smart_str,force_bytes
+from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
+
+
+
 
 from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer,ResetPasswordMailSerializer,ResetPasswordSerializer,EmailVerificationSerializer
 
-
 def loginPage(request):
-    return Response("this is login page")
+    return Response({'message' : "testing redirect"})
 
 def test(request):
-    return redirect('loginPage')
+    return redirect('ln')
 
 
 class UserRegistration(APIView):      #user registrations and update user details
@@ -42,17 +37,13 @@ class UserRegistration(APIView):      #user registrations and update user detail
             link = f"http://localhost:8000/auth/v1.0/email/{uid}/{token}"
             print(link)
             return Response({"uid":uid ,"token":token,"link":link})
-        return Response(serialized_data.errors)
+        return Response(serialized_data.errors, status= status.HTTP_400_BAD_REQUEST)
 
         
 class UserUpdate(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    @swagger_auto_schema(
-        request_body=UpdateUserSerializer,
-        responses={204: "No Content"}
-    )
-    @method_decorator(csrf_exempt)
+    
     def put(self,request):
         try:
             # user = User.objects.get(id= id)                     mildena user lai afno pk k tha
@@ -61,47 +52,44 @@ class UserUpdate(APIView):
             print(serialized_data)
             if serialized_data.is_valid() :
                 serialized_data.save()
-                return Response('User details has been updated')
+                return Response('User details has been updated', status= status.HTTP_202_ACCEPTED)
             return Response(f"{serialized_data}")
         except Exception as exception:
             print(exception)
-            return Response("User not found")
+            return Response("User not found", status= status.HTTP_400_BAD_REQUEST)
 
 
 
 class ChangePassword(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes =[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self,request):
         user = self.request.user
         serialized_data = UpdatePasswordSerializer(data=request.data)
-        print(request.data)
-        print('here')
-        print(serialized_data)
-        print('here was ser')
         if serialized_data.is_valid():
             if not user.check_password(request.data.get('oldPassword')):
                 return Response({'message' : "old password is incorrect"})
             user.set_password(request.data.get('newPassword'))
             user.save()
+            logout(request)
             return Response({'message': "password sucessfully changed"})
-        return Response("invalid Serializer")
+        return Response("invalid Serializer", status=status.HTTP_400_BAD_REQUEST)
         
 
-# password reset , token refresh , token verification, logout
-
 class Logout(APIView):
+    permission_classes = (IsAuthenticated,)
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-    
-    def post(self,request):
+
+    def post(self, request):
         try:
             token = RefreshToken.for_user(request.user)
             token.blacklist()
-            return Response({'message':"user logged out"})
-        except Exception as exception:
-            return Response("User not found")
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
 
 class ResetPasswordMailView(APIView):
     permission_classes = [AllowAny]
@@ -112,7 +100,7 @@ class ResetPasswordMailView(APIView):
             try:
                 user = User.objects.get(email = request.data['email'])
             except User.DoesNotExist:
-                return Response({'message':"No user with this email is registered"})
+                return Response({'message':"No user with this email is registered"}, status= status.HTTP_401_UNAUTHORIZED)
             uid = user.id
             uid = urlsafe_base64_encode(force_bytes(uid))
             token = PasswordResetTokenGenerator().make_token(user= user)
@@ -133,7 +121,7 @@ class ResetPassword(APIView):
             user = User.objects.get(id = uid)
             if user and default_token_generator.check_token(user,token):
                 user.set_password(request.data['password'])
-                return Response({'message':"Resetting password was successful"})
+                return Response({'message':"Resetting password was successful"},status= status.HTTP_202_ACCEPTED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
 class EmailVerificationView(APIView):
@@ -146,32 +134,14 @@ class EmailVerificationView(APIView):
             try :
                 user = User.objects.get(id = uid)
             except User.DoesNotExist():
-                return Response({'message':"user not found"})
+                return Response({'message':"user not found"},status= status.HTTP_404_NOT_FOUND)
             if user and default_token_generator.check_token(user,token):
                 user.is_active = True
                 user.save()
                 return Response({'message' : 'verified'})
             else :
-                return Response({'message':"Token is not valid or expired"})
+                return Response({'message':"Token is not valid or expired"},status= status.HTTP_401_UNAUTHORIZED)
 
-        
-        
-        # if serializer.is_valid():
-        #     return Response({'message': "email verified"})
-        
-        #     uid = data.get('uid')
-        #     token = data.get('token')
-        #     try:
-        #         uid = urlsafe_base64_decode(uid).decode()
-        #         user = User.objects.get(id = uid)
-        #     except User.DoesNotExist():
-        #         raise ValueError("User not found")
-        
-        #     if user and default_token_generator.check(user,token):
-        #         user.is_active = True
-        #     else :
-        #      raise ValueError('Token is not valid or expired') 
-            
             
 
 
