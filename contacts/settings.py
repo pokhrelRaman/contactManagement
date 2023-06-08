@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,11 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'drf_yasg',
+    'rest_framework_simplejwt.token_blacklist',
     "corsheaders",
+    'drf_yasg',
     'contactManagement',
     'userAuthentication',
-    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -146,3 +146,22 @@ SIMPLE_JWT = {
 }
 
 PASSWORD_RESET_TIMEOUT=1000           #1000 seconds
+
+
+STATIC_URL = '/static/'
+# mediamanagement
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+MEDIA_URL = '/media/'
+
+SWAGGER_SETTINGS = {
+   'SECURITY_DEFINITIONS': {
+      
+      'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+      }
+   }
+}

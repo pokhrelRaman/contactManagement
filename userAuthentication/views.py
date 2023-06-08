@@ -13,6 +13,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.utils.encoding import smart_str,force_bytes
 from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
 
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 
@@ -27,6 +31,13 @@ def test(request):
 
 class UserRegistration(APIView):      #user registrations and update user details
     permission_classes = [AllowAny]
+
+    serializer_class = UserSerializer
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
 
     def post(self,request):
         serialized_data = UserSerializer(data = request.data)        
@@ -43,7 +54,13 @@ class UserRegistration(APIView):      #user registrations and update user detail
 class UserUpdate(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    
+
+    serializer_class = UpdateUserSerializer
+    @swagger_auto_schema(
+        request_body=UpdateUserSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def put(self,request):
         try:
             # user = User.objects.get(id= id)                     mildena user lai afno pk k tha
@@ -64,6 +81,12 @@ class ChangePassword(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    seriallizer_class = UpdatePasswordSerializer
+    @swagger_auto_schema(
+        request_body=UpdatePasswordSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def post(self,request):
         user = self.request.user
         serialized_data = UpdatePasswordSerializer(data=request.data)
@@ -94,6 +117,13 @@ class Logout(APIView):
 class ResetPasswordMailView(APIView):
     permission_classes = [AllowAny]
 
+    serializer_class = ResetPasswordMailSerializer
+    @swagger_auto_schema(
+        request_body=ResetPasswordMailSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
+
     def post(self,request):
         serializer = ResetPasswordMailSerializer(data = request.data)
         if serializer.is_valid():
@@ -112,6 +142,12 @@ class ResetPasswordMailView(APIView):
 class ResetPassword(APIView):
     permission_classes = [AllowAny]
     
+    serializer_class = ResetPasswordSerializer
+    @swagger_auto_schema(
+        request_body=ResetPasswordSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def post(self,request):
         serializer = ResetPasswordSerializer(data = request.data)
         if serializer.is_valid():
@@ -125,6 +161,14 @@ class ResetPassword(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
 class EmailVerificationView(APIView):
+
+    serializer_class = EmailVerificationSerializer
+
+    @swagger_auto_schema(
+        request_body=EmailVerificationSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def post(self,request):
         serializer = EmailVerificationSerializer(data = request.data)
         if serializer.is_valid():

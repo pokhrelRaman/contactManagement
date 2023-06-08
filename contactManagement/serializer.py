@@ -14,7 +14,7 @@ class ContactSerializer(serializers.ModelSerializer):
     addresses = AddressSerializer(many=True)
     class Meta:
         model = Contacts
-        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','blacklist','blacklistCount']
+        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','blacklist','blacklistCount','avatar']
 
     def create(self , validated_data):
         user = self.context.get('user')
@@ -30,6 +30,7 @@ class ContactSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name')
         instance.contact_number = validated_data.get('contact_number')
         instance.email = validated_data.get('email')
+        instance.avatar = validated_data.get('avatar')
         addresses_data = validated_data.pop('addresses')
         for address_data in addresses_data:
             try:

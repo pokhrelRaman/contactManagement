@@ -7,10 +7,24 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from rest_framework import status
+from django.core.paginator import Paginator
+
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+
 
 class ContactView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
+    serializer_class =ContactSerializer  
+    @swagger_auto_schema(
+        request_body=ContactSerializer,
+        responses={204: "No Content"},
+    )
+
     
     def post(self, request):
         user = request.user
@@ -55,11 +69,20 @@ class ContactView(APIView):
             return Response({'message': "contact has been deleted"})
         except Exception as exception:
             return Response({'message': "contact not found"},status=status.HTTP_404_NOT_FOUND)
+
+
+
     
 class Blacklist(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    
+    serializer_class = BlackListSerializer
+
+    @swagger_auto_schema(
+        request_body=BlackListSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def put(self,request,pk = None):
         uid = request.user.id
         print(pk)
@@ -67,9 +90,9 @@ class Blacklist(APIView):
             try:            
                 contact = Contacts.objects.get(id=pk)
                 serialized_data = BlackListSerializer(instance = contact, data= request.data)
-                print(serialized_data)
                 if serialized_data.is_valid():
                     contact.blacklist = request.data['blacklist']
+                    contact.blacklistCount = contact.blacklistCount + 1
                     contact.save()
                     return Response ("message: Contact Blacklisted")
                 else:
@@ -83,12 +106,22 @@ class ViewBlacklistedUsers(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(csrf_exempt)
     def get(self,request):
         contacts = Contacts.objects.filter(blacklist= True)
         serialized_data = ContactSerializer(contacts, many = True)
         return Response(serialized_data.data,status= status.HTTP_200_OK)
+    
+
+
 
 class WhiteListUser(APIView):
+    serializer_class = BlackListSerializer
+    @swagger_auto_schema(
+        request_body=BlackListSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def put(self,request,pk):
         if pk is not None:
             try:
@@ -96,6 +129,7 @@ class WhiteListUser(APIView):
                 serialized_data = BlackListSerializer(instance= contact, data = request.data)
                 if serialized_data.is_valid():
                     contact.blacklist = request.data['blacklist']
+                    contact.blacklistCount = contact.blacklist - 1
                     contact.save()
                     return Response({'message' : " Contact has been removed from blacklist"}, status= status.HTTP_202_ACCEPTED)
                 else:
@@ -104,6 +138,8 @@ class WhiteListUser(APIView):
                 return Response({'message':"Contact not found to blacklist"}, status= status.HTTP_404_NOT_FOUND)
         else:
             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
+        
+
 
 
 class PublicView(APIView):
@@ -111,7 +147,13 @@ class PublicView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        contacts = Contacts.objects.filter(blacklistCount__lt =  5)                   #include pagination
+        contacts = Contacts.objects.filter(blacklistCount__lt =  5)
+        itemsPerPage = request.data.get('itemsPerPage')                   
+        pageNo = request.data.get('pageNo')
+        
+        paginator = Paginator(contacts, itemsPerPage)
+        contacts = paginator.get_page(pageNo)
+
         serialized_data = ContactSerializer(contacts, many=True)
         return Response(serialized_data.data)
 
@@ -131,4 +173,14 @@ class PublicView(APIView):
 # }
 
 
+# what if they have mutual contact
+# mutual contact wala list banaune ani add garna milyo
+# add to mutal contact? use bool ..
 
+
+#Suggestions:
+# pagination, swagger, avatar, whitelisting
+
+
+#completed 
+# Pagination, Avtar, whitelisting, swagger  
