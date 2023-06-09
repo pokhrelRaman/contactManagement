@@ -45,6 +45,7 @@ class ContactSerializer(serializers.ModelSerializer):
         return instance
 
 class BlackListSerializer(serializers.Serializer):
+        blacklist = serializers.BooleanField(required=True)
         class Meta:
             fields = ['blacklist']
 

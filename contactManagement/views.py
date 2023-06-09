@@ -24,8 +24,7 @@ class ContactView(APIView):
         request_body=ContactSerializer,
         responses={204: "No Content"},
     )
-
-    
+    @method_decorator(csrf_exempt)
     def post(self, request):
         user = request.user
         serializer = ContactSerializer(data=request.data ,  context = {'user':user})
@@ -146,6 +145,7 @@ class PublicView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(csrf_exempt)
     def get(self,request):
         contacts = Contacts.objects.filter(blacklistCount__lt =  5)
         itemsPerPage = request.data.get('itemsPerPage')                   

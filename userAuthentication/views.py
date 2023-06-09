@@ -103,7 +103,7 @@ class ChangePassword(APIView):
 class Logout(APIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = [JWTAuthentication]
-
+    @method_decorator(csrf_exempt)
     def post(self, request):
         try:
             token = RefreshToken.for_user(request.user)
