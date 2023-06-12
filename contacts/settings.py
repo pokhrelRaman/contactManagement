@@ -156,7 +156,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 MEDIA_URL = '/media/'
 
 SWAGGER_SETTINGS = {
-   'SECURITY_DEFINITIONS': {
+    'SHOW_REQUEST_HEADERS': True,
+    'SUPPORTED_SUBMIT_METHODS': [
+        'get',
+        'post',
+    ],
+    'SECURITY_DEFINITIONS': {
       
       'Bearer': {
             'type': 'apiKey',

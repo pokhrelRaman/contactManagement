@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Contacts, Address
-from .serializer import ContactSerializer,BlackListSerializer
+from .serializer import ContactSerializer,BlackListSerializer,PaginationSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
@@ -145,8 +145,14 @@ class PublicView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    serializer_class = PaginationSerializer
+    @swagger_auto_schema(
+        request_body=PaginationSerializer,
+        responses={204: "No Content"},
+    )
     @method_decorator(csrf_exempt)
-    def get(self,request):
+    
+    def post(self,request):
         contacts = Contacts.objects.filter(blacklistCount__lt =  5)
         itemsPerPage = request.data.get('itemsPerPage')                   
         pageNo = request.data.get('pageNo')

@@ -61,3 +61,9 @@ class BlackListSerializer(serializers.Serializer):
             instance.blacklist = data['blacklist']
             instance.save()
             return instance
+        
+class PaginationSerializer(serializers.Serializer):
+    pageNo = serializers.IntegerField(required=True)
+    itemsPerPage = serializers.IntegerField(required = True)
+    class Meta:
+        fields = ['pageNo','itemsPerPage']
