@@ -14,7 +14,7 @@ class ContactSerializer(serializers.ModelSerializer):
     addresses = AddressSerializer(many=True)
     class Meta:
         model = Contacts
-        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','blacklist','blacklistCount','avatar']
+        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','avatar']
 
     def create(self , validated_data):
         user = self.context.get('user')
@@ -66,4 +66,4 @@ class PaginationSerializer(serializers.Serializer):
     pageNo = serializers.IntegerField(required=True)
     itemsPerPage = serializers.IntegerField(required = True)
     class Meta:
-        fields = ['pageNo','itemsPerPage']
+        fields = ['pageNo','itemsPerPage','num_page']

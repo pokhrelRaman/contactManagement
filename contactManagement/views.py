@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from .models import Contacts, Address
 from .serializer import ContactSerializer,BlackListSerializer,PaginationSerializer
@@ -19,7 +20,7 @@ class ContactView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    serializer_class =ContactSerializer  
+    serializer_class = ContactSerializer  
     @swagger_auto_schema(
         request_body=ContactSerializer,
         responses={204: "No Content"},
@@ -33,22 +34,11 @@ class ContactView(APIView):
             return Response(data={'messege': 'created'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, pk=None):
-        id = pk
-        uid = request.user.id
-        if id is not None:
-            try:
-                contact = Contacts.objects.get(id = id, uid = uid)  
-                serialized_data = ContactSerializer(contact)
-                return Response(serialized_data.data)
-            except Exception as exception:
-                print(f"{exception} couldn't get contact with specified id")                
-                return Response({'message':"no contact with given id exists"},status = status.HTTP_404_NOT_FOUND) 
-                       
-        contacts = Contacts.objects.filter(blacklist = False, uid = uid)
-        serialized_data = ContactSerializer(contacts, many=True)
-        return Response(serialized_data.data)
-
+    @swagger_auto_schema(
+        request_body=ContactSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
     def put(self, request, pk = None):
         id = pk
         uid = request.user.id
@@ -69,6 +59,36 @@ class ContactView(APIView):
         except Exception as exception:
             return Response({'message': "contact not found"},status=status.HTTP_404_NOT_FOUND)
 
+class ViewContacts(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class =PaginationSerializer  
+    @swagger_auto_schema(
+        request_body=PaginationSerializer,
+        responses={204: "No Content"},
+    )
+    @method_decorator(csrf_exempt)
+    def post(self, request, pk=None):
+        id = pk
+        uid = request.user.id
+        if id is not None:
+            try:
+                contact = Contacts.objects.get(id = id, uid = uid)  
+                serialized_data = ContactSerializer(contact)
+                return Response(serialized_data.data)
+            except Exception as exception:
+                print(f"{exception} couldn't get contact with specified id")                
+                return Response({'message':"no contact with given id exists"},status = status.HTTP_404_NOT_FOUND) 
+                       
+        contacts = Contacts.objects.filter(blacklist = False, uid = uid)
+        itemsPerPage = request.data.get('itemsPerPage')                   
+        pageNo = request.data.get('pageNo')
+        
+        paginator = Paginator(contacts, itemsPerPage)
+        contacts = paginator.get_page(pageNo)
+        serialized_data = ContactSerializer(contacts, many=True)
+        return Response(serialized_data.data)
 
 
     
@@ -139,17 +159,18 @@ class WhiteListUser(APIView):
             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
         
 
+from drf_yasg import openapi
 
-
-class PublicView(APIView):
+class PublicView(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     serializer_class = PaginationSerializer
     @swagger_auto_schema(
         request_body=PaginationSerializer,
-        responses={204: "No Content"},
-    )
+        responses={200:'NO content'}
+             
+        )
     @method_decorator(csrf_exempt)
     
     def post(self,request):
@@ -159,9 +180,12 @@ class PublicView(APIView):
         
         paginator = Paginator(contacts, itemsPerPage)
         contacts = paginator.get_page(pageNo)
-
+        pages = paginator.num_pages
         serialized_data = ContactSerializer(contacts, many=True)
-        return Response(serialized_data.data)
+        return Response({
+        'num_pages': pages,
+        'data': list(serialized_data.data)
+    })
 
 
 # {
