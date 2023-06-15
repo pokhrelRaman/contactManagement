@@ -119,7 +119,7 @@ class Blacklist(APIView):
             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
 
 
-class ViewBlacklistedUsers(ListAPIView):
+class ViewBlacklistedUsers(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaginationSerializer
@@ -131,7 +131,7 @@ class ViewBlacklistedUsers(ListAPIView):
     @method_decorator(csrf_exempt)
     def post(self,request):
         contacts = Contacts.objects.filter(blacklist= True)
-        itemsPerPage = request.data.get('')
+        itemsPerPage = request.data.get('itemsPerPage')
         pageNo = request.data.get('pageNo')
 
         paginator = Paginator(contacts, itemsPerPage)
