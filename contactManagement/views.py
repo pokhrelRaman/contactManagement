@@ -55,6 +55,7 @@ class ContactView(APIView):
         except Exception as exception:
             return Response({'message': "contact not found"},status=status.HTTP_404_NOT_FOUND)
 
+
 class ViewContacts(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -118,15 +119,27 @@ class Blacklist(APIView):
             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
 
 
-class ViewBlacklistedUsers(APIView):
+class ViewBlacklistedUsers(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    serializer_class = PaginationSerializer
 
+    @swagger_auto_schema(
+        request_body=PaginationSerializer,
+        responses={204: "No Content"},
+    )
     @method_decorator(csrf_exempt)
-    def get(self,request):
+    def post(self,request):
         contacts = Contacts.objects.filter(blacklist= True)
+        itemsPerPage = request.data.get('')
+        pageNo = request.data.get('pageNo')
+
+        paginator = Paginator(contacts, itemsPerPage)
+        contacts = paginator.get_page(pageNo)
+        pages = paginator.num_pages
         serialized_data = ContactSerializer(contacts, many = True)
-        return Response(serialized_data.data,status= status.HTTP_200_OK)
+        
+        return Response({'num_pages': pages,'data':serialized_data.data},status= status.HTTP_200_OK)
     
 
 
