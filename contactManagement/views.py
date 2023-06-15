@@ -34,11 +34,6 @@ class ContactView(APIView):
             return Response(data={'messege': 'created'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        request_body=ContactSerializer,
-        responses={204: "No Content"},
-    )
-    @method_decorator(csrf_exempt)
     def put(self, request, pk = None):
         id = pk
         uid = request.user.id
@@ -48,6 +43,7 @@ class ContactView(APIView):
             if serialized_data.is_valid():
                 serialized_data.save()
                 return Response({'message': "contacts Updated"},status=status.HTTP_202_ACCEPTED)
+            return Response({'message': "invalid Serializer"}, status= status.HTTP_400_BAD_REQUEST)
         return Response({'message': f"{pk} Couldn't Update"},status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk=None):
@@ -59,7 +55,7 @@ class ContactView(APIView):
         except Exception as exception:
             return Response({'message': "contact not found"},status=status.HTTP_404_NOT_FOUND)
 
-class ViewContacts(APIView):
+class ViewContacts(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -121,6 +117,7 @@ class Blacklist(APIView):
         else:
             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
 
+
 class ViewBlacklistedUsers(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -159,7 +156,6 @@ class WhiteListUser(APIView):
             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
         
 
-from drf_yasg import openapi
 
 class PublicView(ListAPIView):
     authentication_classes = [JWTAuthentication]
@@ -169,7 +165,6 @@ class PublicView(ListAPIView):
     @swagger_auto_schema(
         request_body=PaginationSerializer,
         responses={200:'NO content'}
-             
         )
     @method_decorator(csrf_exempt)
     
