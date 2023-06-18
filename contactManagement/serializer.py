@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Contacts, Address
+from django.contrib.auth.models import User 
+from .models import Contacts, Address, Blacklisters
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -8,13 +9,47 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = ['id','address','contact']
 
+class BlacklistersSerializer(serializers.Serializer):
+    uid = serializers.IntegerField(required = False)
+    class Meta:
+        model = Blacklisters
+        fields = ['uid', 'contact']
+   
+    def create(self, data):
+            uid = self.context.get('uid')
+            user = User.objects.get(id = uid)
+            contact = Contacts.objects.get(id = self.context.get('contactID'))
+            blacklister = Blacklisters.objects.create(contact = contact, uid = user)
+            contact = Contacts.objects.get(id = self.context.get('contactID'))
+            contact.blacklistCount = contact.blacklistCount + 1
+            contact.save()
+            return blacklister
 
+class WhitelistSerializer(serializers.Serializer):
+    uid = serializers.IntegerField(required = False)
+    class Meta:
+        model = Blacklisters
+        fields = ['uid', 'contact']
+   
+    def create(self, data):
+        uid = self.context.get('uid')
+        user = User.objects.get(id = uid)
+        contact = Contacts.objects.get(id = self.context.get('contactID'))
+        blacklister = Blacklisters.objects.get(contact = contact, uid = user)
+        contact = Contacts.objects.get(id = self.context.get('contactID'))
+        contact.blacklistCount = contact.blacklistCount -1
+        contact.save()
+        return blacklister
+
+    
+        
+        
 
 class ContactSerializer(serializers.ModelSerializer):
     addresses = AddressSerializer(many=True)
-    class Meta:
+    class Meta: 
         model = Contacts
-        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','avatar']
+        fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','avatar','blacklistCount']
 
     def create(self , validated_data):
         user = self.context.get('user')
@@ -44,23 +79,23 @@ class ContactSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class BlackListSerializer(serializers.Serializer):
-        blacklist = serializers.BooleanField(required=True)
-        class Meta:
-            fields = ['blacklist']
+# class BlackListSerializer(serializers.Serializer):
+#     blacklist = serializers.BooleanField(required=True)
+#     class Meta:
+#         fields = ['blacklist']
 
-        def update(self, instance, data):
-            blacklist = data['blacklist']
-            if blacklist :
-                instance.blacklistCount = instance.blacklistCount + 1
-                instance.blacklist = True
-                print("blacklisted")
-            elif instance.blacklistCount < 5 and blacklist is False:
-                instance.blacklistCount = instance.blacklistCount - 1
-                print("whitelisted")
-            instance.blacklist = data['blacklist']
-            instance.save()
-            return instance
+#     def update(self, instance, data):
+#         blacklist = data['blacklist']
+#         if blacklist :
+#             instance.blacklistCount = instance.blacklistCount + 1
+#             instance.blacklist = True
+#             print("blacklisted")
+#         elif instance.blacklistCount < 5 and blacklist is False:
+#             instance.blacklistCount = instance.blacklistCount - 1
+#             print("whitelisted")
+#         instance.blacklist = data['blacklist']
+#         instance.save()
+#         return instance
         
 class PaginationSerializer(serializers.Serializer):
     pageNo = serializers.IntegerField(required=True)
