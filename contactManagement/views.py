@@ -273,7 +273,7 @@ class WhitelistUser(APIView):
             return Response({'message': "no matching result in blacklist"}, status= status.HTTP_404_NOT_FOUND)
         return Response({'message': " invalid serializer"}, status= status.HTTP_400_BAD_REQUEST)
     
-
+###
 #Suggestions:
 # pagination, swagger, avatar, whitelisting
 

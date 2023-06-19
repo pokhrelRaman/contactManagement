@@ -15,3 +15,4 @@ urlpatterns = [
     path('blacklistedUser',ViewBlacklistedUsers_self.as_view()),
     path('whitelist/<int:pk>',WhitelistUser.as_view()),
 ] + static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT)
+#
