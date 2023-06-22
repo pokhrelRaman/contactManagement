@@ -90,36 +90,6 @@ class ViewContacts(ListAPIView):
         return Response(serialized_data.data)
 
 
-    
-# class Blacklist(APIView):
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = BlackListSerializer
-
-#     @swagger_auto_schema(
-#         request_body=BlackListSerializer,
-#         responses={204: "No Content"},
-#     )
-#     @method_decorator(csrf_exempt)
-#     def put(self,request,pk = None):
-#         uid = request.user.id
-#         print(pk)
-#         if pk is not None:
-#             try:            
-#                 contact = Contacts.objects.get(id=pk)
-#                 serialized_data = BlackListSerializer(instance = contact, data= request.data, context = {'uid' : uid})
-#                 if serialized_data.is_valid():
-#                     # contact.blacklist = request.data['blacklist']
-#                     contact.blacklistCount = contact.blacklistCount + 1
-#                     contact.save()
-#                     return Response ("message: Contact Blacklisted")
-#                 else:
-#                     return Response(serialized_data.error_messages, status=status.HTTP_400_BAD_REQUEST)
-#             except Exception as exception:
-#                 return Response({'message':"Contact not found to blacklist"}, status= status.HTTP_404_NOT_FOUND)
-#         else:
-#             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
-
 
 class ViewBlacklistedUsers_self(APIView):
     authentication_classes = [JWTAuthentication]
@@ -133,8 +103,12 @@ class ViewBlacklistedUsers_self(APIView):
     @method_decorator(csrf_exempt)
     def post(self,request):
         uid = request.user.id
-        print(uid)
-        contacts = Contacts.objects.filter(blacklistCount__gt = 0 , uid = uid )
+        contacts = []
+        blacklisted_contacts = Blacklisters.objects.filter(uid = uid)
+        for blacklisted_contact in blacklisted_contacts:
+            contact = Contacts.objects.get(id = blacklisted_contact.contact)
+            contacts.append(contact)
+
         itemsPerPage = request.data.get('itemsPerPage')
         pageNo = request.data.get('pageNo')
 
@@ -167,35 +141,7 @@ class TotalBlacklistedUsers(APIView):
         serialized_data = ContactSerializer(contacts, many = True)
         
         return Response({'num_pages': pages,'data':serialized_data.data},status= status.HTTP_200_OK)
-    
-
-
-
-
-# class WhiteListUser(APIView):
-#     serializer_class = BlackListSerializer
-#     @swagger_auto_schema(
-#         request_body=BlackListSerializer,
-#         responses={204: "No Content"},
-#     )
-#     @method_decorator(csrf_exempt)
-#     def put(self,request,pk):
-#         if pk is not None:
-#             try:
-#                 contact = Contacts.objects.get(id = request.data['id'])
-#                 serialized_data = BlackListSerializer(instance= contact, data = request.data)
-#                 if serialized_data.is_valid():
-#                     contact.blacklist = request.data['blacklist']
-#                     contact.blacklistCount = contact.blacklist - 1
-#                     contact.save()
-#                     return Response({'message' : " Contact has been removed from blacklist"}, status= status.HTTP_202_ACCEPTED)
-#                 else:
-#                     return Response(serialized_data.error_messages, status=status.HTTP_400_BAD_REQUEST)
-#             except Exception as exception:
-#                 return Response({'message':"Contact not found to blacklist"}, status= status.HTTP_404_NOT_FOUND)
-#         else:
-#             return Response("message: cannot blacklist unspecified contact",status=status.HTTP_400_BAD_REQUEST)
-        
+         
 
 
 class PublicView(ListAPIView):
@@ -224,14 +170,10 @@ class PublicView(ListAPIView):
     })
 
 
-class Blacklist(APIView):                 # aile ko latest
+class Blacklist(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    serializer_class = BlacklistersSerializer
-    @swagger_auto_schema(
-        request_body=BlacklistersSerializer,
-        responses={200:'NO content'}
-        )
+    
     @method_decorator(csrf_exempt)
 
     def post(self,request,pk):
@@ -239,44 +181,41 @@ class Blacklist(APIView):                 # aile ko latest
         blacklisted_ =  Blacklisters.objects.filter(uid = uid , contact = pk).exists()
         if blacklisted_:
             return Response({'message':"contact was already blaclisted"})
-        serializer = BlacklistersSerializer(data=request.data, context = {'uid': uid, 'contactID': pk})
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': "contact has been blacklisted"})
-        return Response({'message' : "invalid serializer"}, status= status.HTTP_400_BAD_REQUEST)
-        
-
+        if Contacts.objects.filter(id = pk).exists:
+            serializer = BlacklistersSerializer(data=request.data, context = {'uid': uid, 'contactID': pk})
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'message': "contact has been blacklisted"})
+            return Response({'message' : "invalid serializer"}, status= status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "invalid serializer"}, status= status.HTTP_404_NOT_FOUND)
+  
 class WhitelistUser(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    serializer_class = BlacklistersSerializer
-    @swagger_auto_schema(
-        request_body=BlacklistersSerializer,
-        responses={200:'NO content'}
-        )
     @method_decorator(csrf_exempt)
     def post(self,request,pk):
         uid = request.user.id
-        print(uid)
         blacklist = Blacklisters.objects.filter(uid = uid , contact = pk).exists()
-        print(blacklist)
-        if blacklist is False:
-            return Response({'message': "given contact is not blacklisted by this user"}, status= status.HTTP_404_NOT_FOUND)    
-
-        serializer = WhitelistSerializer(data=request.data, context = [{'uid': uid}])
-        if serializer.is_valid():
-            if blacklist is not None: 
-                    blacklist_ = Blacklisters.objects.filter(uid= uid , contact = pk)
-                    blacklist_.delete()
-                    return Response({'message':"Whitelisted Contact"})
-            return Response({'message': "no matching result in blacklist"}, status= status.HTTP_404_NOT_FOUND)
-        return Response({'message': " invalid serializer"}, status= status.HTTP_400_BAD_REQUEST)
+        if blacklist:
+            serializer = WhitelistSerializer(data=request.data, context = [{'uid': uid}])
+            if serializer.is_valid():
+                if blacklist is not None: 
+                        blacklist_ = Blacklisters.objects.filter(uid= uid , contact = pk)
+                        contact = Contacts.objects.get(id = pk)
+                        contact.blacklistCount = contact.blacklistCount - 1
+                        contact.save()
+                        blacklist_.delete()
+                        return Response({'message':"Whitelisted Contact"})
+                return Response({'message': "no matching result in blacklist"}, status= status.HTTP_404_NOT_FOUND)
+            return Response({'message': " invalid serializer"}, status= status.HTTP_400_BAD_REQUEST)
+        return Response({'message': "given contact is not blacklisted by this user"}, status= status.HTTP_404_NOT_FOUND)    
     
 ###
 #Suggestions:
 # pagination, swagger, avatar, whitelisting
 
 
+
 #completed 
-# Pagination, Avtar, whitelisting, swagger  
+# Pagination, Avtar, whitelisting, swagger

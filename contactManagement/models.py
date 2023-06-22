@@ -1,13 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+def upload_to(instance,filename):
+    return 'avatar/images{filename}'.format(filename=filename)
+    
+
 class Contacts(models.Model):
     name = models.CharField(max_length= 100,help_text="Full Name")
     email = models.EmailField(unique=True)
     contact_number = models.CharField(unique= True,max_length=13,help_text="format: 9779841333333")
     blacklistCount = models.IntegerField(default=0)
     uid = models.ForeignKey(User,null=True,on_delete=models.CASCADE )
-    avatar = models.ImageField(upload_to="avatar/images" , null = True, default= "") 
+    avatar = models.ImageField(upload_to= upload_to, null = True, default= "") 
 
     def __str__(self):
         return self.email

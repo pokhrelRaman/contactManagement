@@ -32,12 +32,14 @@ class WhitelistSerializer(serializers.Serializer):
         fields = ['uid', 'contact']
    
     def create(self, data):
+        print("called Create")
         uid = self.context.get('uid')
         user = User.objects.get(id = uid)
         contact = Contacts.objects.get(id = self.context.get('contactID'))
         blacklister = Blacklisters.objects.get(contact = contact, uid = user)
         contact = Contacts.objects.get(id = self.context.get('contactID'))
         contact.blacklistCount = contact.blacklistCount -1
+        print(contact.blacklistCount)
         contact.save()
         return blacklister
 
