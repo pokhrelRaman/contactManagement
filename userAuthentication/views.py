@@ -22,12 +22,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import UserSerializer,UpdatePasswordSerializer,UpdateUserSerializer,ResetPasswordMailSerializer,ResetPasswordSerializer,EmailVerificationSerializer
 
-def loginPage(request):
-    return Response({'message' : "testing redirect"})
-
-def test(request):
-    return redirect('ln')
-
 
 class UserRegistration(APIView):      #user registrations and update user details
     permission_classes = [AllowAny]

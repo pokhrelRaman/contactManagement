@@ -1,8 +1,7 @@
-from django.urls import path, include
-from rest_framework import routers
-from .views import ContactView,PublicView,Blacklist,WhitelistUser,ViewBlacklistedUsers_self,ViewContacts
+from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import ContactView,PublicView,Blacklist,WhitelistUser,ViewBlacklistedUsers_self,ViewContacts
 
 urlpatterns = [
     path('',ContactView.as_view()),
