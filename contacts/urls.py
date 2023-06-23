@@ -19,16 +19,12 @@ schema_view = get_schema_view(
       license=openapi.License(name="test License"),
    ),
    public=True,
-   permission_classes=[AllowAny],
-    authentication_classes=[],
+   permission_classes=[AllowAny]
 )
-
 
 urlpatterns = [
     path('admin', admin.site.urls),
     path('auth/v1.0/', include('userAuthentication.urls'),name = 'register'),
-    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ] +  static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT)
-
-# schema_view = decorator_with_token_authentication(schema_view)

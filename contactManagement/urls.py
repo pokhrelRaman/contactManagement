@@ -8,7 +8,6 @@ urlpatterns = [
     path('',ContactView.as_view()),
     path('viewall',PublicView.as_view()),
     path('<int:pk>',ContactView.as_view()),
-    path('<int:pk>',ContactView.as_view()),
     path('myContacts/<int:pk>',ViewContacts.as_view()),
     path('myContacts',ViewContacts.as_view()),
     path('blacklist/<int:pk>',Blacklist.as_view()),
