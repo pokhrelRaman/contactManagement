@@ -44,11 +44,13 @@ class WhitelistSerializer(serializers.Serializer):
         return blacklister
 
     
-        
+class ImageSerializer(serializers.Serializer):
+    image = serializers.ImageField()
         
 
 class ContactSerializer(serializers.ModelSerializer):
     addresses = AddressSerializer(many=True)
+    avatar = ImageSerializer()
     class Meta: 
         model = Contacts
         fields = ['id', 'name', 'email', 'contact_number', 'addresses','uid','avatar','blacklistCount']
@@ -80,24 +82,6 @@ class ContactSerializer(serializers.ModelSerializer):
             address.save()
         instance.save()
         return instance
-
-# class BlackListSerializer(serializers.Serializer):
-#     blacklist = serializers.BooleanField(required=True)
-#     class Meta:
-#         fields = ['blacklist']
-
-#     def update(self, instance, data):
-#         blacklist = data['blacklist']
-#         if blacklist :
-#             instance.blacklistCount = instance.blacklistCount + 1
-#             instance.blacklist = True
-#             print("blacklisted")
-#         elif instance.blacklistCount < 5 and blacklist is False:
-#             instance.blacklistCount = instance.blacklistCount - 1
-#             print("whitelisted")
-#         instance.blacklist = data['blacklist']
-#         instance.save()
-#         return instance
         
 class PaginationSerializer(serializers.Serializer):
     pageNo = serializers.IntegerField(required=True)

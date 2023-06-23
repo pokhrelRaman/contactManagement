@@ -1,19 +1,18 @@
-from rest_framework import viewsets, status
-from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
-from .models import Contacts, Address,Blacklisters
-from .serializer import ContactSerializer,PaginationSerializer, BlacklistersSerializer,WhitelistSerializer
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
+from rest_framework import  status
 from rest_framework import status
+from rest_framework.views import APIView
+from .models import Contacts,Blacklisters
 from django.core.paginator import Paginator
+from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .serializer import ContactSerializer,PaginationSerializer, BlacklistersSerializer,WhitelistSerializer
 
 from drf_yasg.utils import swagger_auto_schema
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-
 
 
 class ContactView(APIView):
@@ -145,8 +144,8 @@ class TotalBlacklistedUsers(APIView):
 
 
 class PublicView(ListAPIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     serializer_class = PaginationSerializer
     @swagger_auto_schema(
@@ -173,7 +172,6 @@ class PublicView(ListAPIView):
 class Blacklist(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    
     @method_decorator(csrf_exempt)
 
     def post(self,request,pk):
@@ -214,8 +212,6 @@ class WhitelistUser(APIView):
 ###
 #Suggestions:
 # pagination, swagger, avatar, whitelisting
-
-
 
 #completed 
 # Pagination, Avtar, whitelisting, swagger
