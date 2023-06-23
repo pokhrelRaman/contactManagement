@@ -144,8 +144,8 @@ class TotalBlacklistedUsers(APIView):
 
 
 class PublicView(ListAPIView):
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     serializer_class = PaginationSerializer
     @swagger_auto_schema(
@@ -185,7 +185,7 @@ class Blacklist(APIView):
                 serializer.save()
                 return Response({'message': "contact has been blacklisted"})
             return Response({'message' : "invalid serializer"}, status= status.HTTP_400_BAD_REQUEST)
-        return Response({'message' : "invalid serializer"}, status= status.HTTP_404_NOT_FOUND)
+        return Response({'message' : "Contact doesn't exist"}, status= status.HTTP_404_NOT_FOUND)
   
 class WhitelistUser(APIView):
     authentication_classes = [JWTAuthentication]
