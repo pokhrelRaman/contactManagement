@@ -45,7 +45,7 @@ class WhitelistSerializer(serializers.Serializer):
 
     
 class ImageSerializer(serializers.Serializer):
-    image = serializers.ImageField()
+    avatar = serializers.ImageField()
         
 
 class ContactSerializer(serializers.ModelSerializer):
